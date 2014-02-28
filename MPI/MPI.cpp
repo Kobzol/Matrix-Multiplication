@@ -1,4 +1,5 @@
 ﻿#include "mpi.h"
+#include <cmath>
 #include <iostream>
 
 #include "matrix.h"
@@ -17,22 +18,27 @@ int main(int argc, char argv[])
 	double *MB = NULL;
 	double *MC = NULL;
 
+	int rows;
+	int cols;
+
 	if (rank == 0)
 	{
-		int rows;
-		int cols;
-
 		setMatrices(MA, MB, MC, rows, cols);
-		printMatrix(MA, rows, cols);
-		
 		shuffleMatrices(MA, MB, rows, cols, size);
 
 		printMatrix(MA, rows, cols);
+
+		initialSendMatrices(MA, MB, rows, cols, size);
 	}
 	else
 	{
-		
+		receiveAndSetDimensions(MA, MB, MC, rows, cols);
+		initialReceiveMatrices(MA, MB, rows, cols, rank, size);
 	}
+
+	delete[] MA;
+	delete[] MB;
+	delete[] MC;
 
 	int test;
 	scanf("%d", &test);
