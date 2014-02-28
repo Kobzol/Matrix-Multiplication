@@ -16,7 +16,7 @@ void setMatrices(double *& matrixA, double *& matrixB, double *& matrixC, int &r
 
 void shuffleMatrices(double *matrixA, double *matrixB, int rows, int cols, int size);
 void initialSendMatrices(const double * matrixA, const double * matrixB, int rows, int cols, int size);
-void receiveAndSetDimensions(double * &matrixA, double * &matrixB, double * &matrixC, int &rows, int &cols);
+void receiveAndSetDimensions(double * &matrixA, double * &matrixB, double * &matrixC, int &rows, int &cols, int size);
 void initialReceiveMatrices(double *matrixA, double *matrixB, int rows, int cols, int rank, int size);
 
 void resendMatrices();

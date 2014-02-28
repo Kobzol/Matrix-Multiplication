@@ -17,7 +17,7 @@ void setMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 		MB[i] = i % 3;
 	}
 }
-void shuffleMatrices(double *&MA, double *&MB, int rows, int cols, int size)
+void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 {
 	int subMatrixElems = (rows * cols) / size;
 
@@ -97,7 +97,7 @@ void initialSendMatrices(const double * MA, const double * MB, int rows, int col
 	delete[] bufferMA;
 	delete[] bufferMB;
 }
-void receiveAndSetDimensions(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
+void receiveAndSetDimensions(double * &MA, double * &MB, double * &MC, int &rows, int &cols, int size)
 {
 	int dimensions[2];
 
@@ -106,62 +106,50 @@ void receiveAndSetDimensions(double * &MA, double * &MB, double * &MC, int &rows
 	rows = dimensions[0];
 	cols = dimensions[1];
 
-	int elems = rows * cols;
-
-	MA = new double[elems];
-	MB = new double[elems];
-	MC = new double[elems];
-}
-void initialReceiveMatrices(double *& MA, double *& MB, int rows, int cols, int rank, int size)
-{
-	int procWidth = sqrt(size);	// dimension of grid
-
-	int i = rank / procWidth;	// processor x coord in grid
-	int j = rank % procWidth;	// processor y coord in grid
-	
 	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
-	int subMatrixDim = subMatrixElems / 2;		// dimension of submatrix
 
-	int xStart = i * subMatrixDim;
-	int xEnd = xStart + subMatrixDim;
-
-	int yStart = j * subMatrixDim;
-	int yEnd = yStart + subMatrixDim;
+	MA = new double[subMatrixElems];
+	MB = new double[subMatrixElems];
+	MC = new double[subMatrixElems];
+}
+void initialReceiveMatrices(double * MA, double * MB, int rows, int cols, int rank, int size)
+{
+	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
 
 	MPI_Status status;
 
 	double *buffer = new double[subMatrixElems];
-	int bufferPos;
 
 	for (int i = 0; i < 2; i++)
 	{
-		bufferPos = 0;
-
 		MPI_Recv(buffer, subMatrixElems, MPI_DOUBLE, 0, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 
-		for (int x = xStart; x < xEnd; x++)
+		if (status.MPI_TAG == TAG_MATRIX_A)
 		{
-			for (int y = yStart; y < yEnd; y++)
-			{
-				if (status.MPI_TAG == TAG_MATRIX_A)
-				{
-					MA[x * cols + y] = buffer[bufferPos++];
-				}
-				else MB[x * cols + y] = buffer[bufferPos++];				
-			}
+			memcpy(MA, buffer, sizeof(*buffer) * subMatrixElems);
 		}
-	}
-
-	if (rank == 1)
-	{
-		printMatrix(MA, rows, cols);
-		printMatrix(MB, rows, cols);
+		else memcpy(MB, buffer, sizeof(*buffer) * subMatrixElems);
 	}
 
 	delete[] buffer;
 }
 
-void multiplyMatrices(const double *MA, const double *MB, double *MC, int rows, int cols);
+void multiplyMatrices(const double *MA, const double *MB, double *MC, int rows, int cols)
+{
+	for (int i = 0; i < rows; i++)
+	{
+		for (int j = 0; j < cols; j++)
+		{
+			int position = i * cols + j;
+			MC[position] = 0;
+
+			for (int k = 0; k < cols; k++)
+			{
+				MC[position] += MA[i * cols + k] * MB[k * cols + j];
+			}
+		}
+	}
+}
 
 void printMatrix(double *matrix, int rows, int cols)
 {

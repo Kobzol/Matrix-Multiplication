@@ -27,12 +27,17 @@ int main(int argc, char argv[])
 		shuffleMatrices(MA, MB, rows, cols, size);
 
 		printMatrix(MA, rows, cols);
+		printMatrix(MB, rows, cols);
+
+		multiplyMatrices(MA, MB, MC, rows, cols);
+
+		printMatrix(MC, rows, cols);
 
 		initialSendMatrices(MA, MB, rows, cols, size);
 	}
 	else
 	{
-		receiveAndSetDimensions(MA, MB, MC, rows, cols);
+		receiveAndSetDimensions(MA, MB, MC, rows, cols, size);
 		initialReceiveMatrices(MA, MB, rows, cols, rank, size);
 	}
 
