@@ -197,6 +197,47 @@ void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 	delete[] buffer;
 }
 
+void sendResult(const double *M, int elems, int target)
+{
+	MPI_Send(M, elems, MPI_DOUBLE, target, TAG_MATRIX_RESULT, MPI_COMM_WORLD);
+}
+void collectResult(double *M, int rows, int cols, int size)
+{
+	MPI_Status status;
+	
+	int procWidth = sqrt(size);
+
+	int elems = rows * cols;
+
+	double *buffer = new double[elems];
+	int bufferPos = 0;
+
+	MPI_Recv(buffer, elems, MPI_DOUBLE, MPI_ANY_SOURCE, TAG_MATRIX_RESULT, MPI_COMM_WORLD, &status);
+
+	int rank = status.MPI_SOURCE;
+
+	int location[2] = {
+		rank / procWidth
+		,rank % procWidth
+	};
+
+	int xStart = location[0] * rows;
+	int xEnd = xStart + rows;
+
+	int yStart = location[1] * cols;
+	int yEnd = yStart + cols;
+
+	for (int x = xStart; x < xEnd; x++)
+	{
+		for (int y = yStart; y < yEnd; y++)
+		{
+			M[x * cols + y] = buffer[bufferPos++];
+		}
+	}
+	
+	delete[] buffer;
+}
+
 void multiplyMatrices(const double *MA, const double *MB, double *MC, int rows, int cols)
 {
 	for (int i = 0; i < rows; i++)

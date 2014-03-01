@@ -41,6 +41,7 @@ int main(int argc, char argv[])
 		shuffleMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
 
 		printMatrix(FullMatrixA, full_rows, full_cols);
+		printMatrix(FullMatrixB, full_rows, full_cols);
 
 		// initialize submatrices
 		sub_rows = sub_cols = ((full_rows * full_cols) / size) / 2;
@@ -51,6 +52,7 @@ int main(int argc, char argv[])
 		initialSendMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
 
 		int subMatrixIndex = 0;
+
 		for (int i = 0; i < sub_rows; i++)
 		{
 			for (int j = 0; j < sub_cols; j++)
@@ -69,6 +71,23 @@ int main(int argc, char argv[])
 
 			receiveMatrices(MA, MB, subMatrixElems, rank, size);
 		}
+
+		subMatrixIndex = 0;
+
+		for (int i = 0; i < sub_rows; i++)
+		{
+			for (int j = 0; j < sub_cols; j++)
+			{
+				FullMatrixC[i * full_cols + j] = MC[subMatrixIndex++];
+			}
+		}
+
+		for (int i = 0; i < size - 1; i++)
+		{
+			collectResult(FullMatrixC, sub_rows, sub_cols, size);
+		}
+
+		printMatrix(FullMatrixC, full_rows, full_cols);
 
 		delete[] FullMatrixA;
 		delete[] FullMatrixB;
@@ -93,6 +112,8 @@ int main(int argc, char argv[])
 
 			receiveMatrices(MA, MB, subMatrixElems, rank, size);
 		}
+
+		sendResult(MC, subMatrixElems, 0);
 	}
 
 	delete[] MA;
