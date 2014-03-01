@@ -4,6 +4,9 @@
 
 #include "matrix.h"
 
+using std::cout;
+using std::endl;
+
 int main(int argc, char argv[])
 {
 	MPI_Init(NULL, NULL);
@@ -18,27 +21,54 @@ int main(int argc, char argv[])
 	double *MB = NULL;
 	double *MC = NULL;
 
-	int rows;
-	int cols;
+	int sub_rows;
+	int sub_cols;
 
 	if (rank == 0)
 	{
-		setMatrices(MA, MB, MC, rows, cols);
-		shuffleMatrices(MA, MB, rows, cols, size);
+		double *FullMatrixA = NULL;
+		double *FullMatrixB = NULL;
+		double *FullMatrixC = NULL;
 
-		printMatrix(MA, rows, cols);
-		printMatrix(MB, rows, cols);
+		int full_rows;
+		int full_cols;
+		
+		// initialize given and result matrices
+		initializeMatrices(FullMatrixA, FullMatrixB, FullMatrixC, full_rows, full_cols);
+		shuffleMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
 
-		multiplyMatrices(MA, MB, MC, rows, cols);
+		printMatrix(FullMatrixA, full_rows, full_cols);
 
-		printMatrix(MC, rows, cols);
+		// initialize submatrices
+		sub_rows = sub_cols = ((full_rows * full_cols) / size) / 2;
+		
+		setMatrices(MA, MB, MC, sub_rows, sub_rows);
 
-		initialSendMatrices(MA, MB, rows, cols, size);
+		initialSendMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
+
+		delete[] FullMatrixA;
+		delete[] FullMatrixB;
+		delete[] FullMatrixC;
 	}
 	else
 	{
-		receiveAndSetDimensions(MA, MB, MC, rows, cols, size);
-		initialReceiveMatrices(MA, MB, rows, cols, rank, size);
+		receiveDimensions(sub_rows, sub_cols);
+
+		setMatrices(MA, MB, MC, sub_rows, sub_cols);
+
+		initialReceiveMatrices(MA, MB, sub_rows * sub_cols, rank, size);
+
+		int procWidth = sqrt(size);
+
+		if (rank == 1)
+		{
+			printMatrix(MA, sub_rows, sub_cols);
+		}
+
+		for (int i = 0; i < procWidth; i++)
+		{
+			multiplyMatrices(MA, MB, MC, sub_rows, sub_cols);
+		}
 	}
 
 	delete[] MA;

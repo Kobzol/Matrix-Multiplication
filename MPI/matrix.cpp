@@ -1,13 +1,11 @@
 #include "matrix.h"
 
-void setMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
+void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 {
 	rows = 4;
 	cols = 4;
 
-	MA = new double[rows * cols];
-	MB = new double[rows * cols];
-	MC = new double[rows * cols];
+	setMatrices(MA, MB, MC, rows, cols);	// size of 1 creates full matrix
 
 	int count = rows * cols;
 
@@ -16,6 +14,15 @@ void setMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 		MA[i] = i + 1;
 		MB[i] = i % 3;
 	}
+}
+
+void setMatrices(double * &MA, double * &MB, double * &MC, int rows, int cols)
+{
+	int elems = rows * cols;
+
+	MA = new double[elems];
+	MB = new double[elems];
+	MC = new double[elems];
 }
 void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 {
@@ -49,7 +56,6 @@ void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 		}
 	}
 }
-
 void initialSendMatrices(const double * MA, const double * MB, int rows, int cols, int size)
 {
 	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
@@ -59,7 +65,7 @@ void initialSendMatrices(const double * MA, const double * MB, int rows, int col
 	double *bufferMB = new double[subMatrixElems];
 	int bufferPos = 0;
 
-	int dimensions[2] = { rows, cols };
+	int dimensions[2] = { subMatrixDim, subMatrixDim };
 
 	int procWidth = sqrt(size);	// dimension of grid
 
@@ -97,7 +103,8 @@ void initialSendMatrices(const double * MA, const double * MB, int rows, int col
 	delete[] bufferMA;
 	delete[] bufferMB;
 }
-void receiveAndSetDimensions(double * &MA, double * &MB, double * &MC, int &rows, int &cols, int size)
+
+void receiveDimensions(int &rows, int &cols)
 {
 	int dimensions[2];
 
@@ -105,17 +112,9 @@ void receiveAndSetDimensions(double * &MA, double * &MB, double * &MC, int &rows
 
 	rows = dimensions[0];
 	cols = dimensions[1];
-
-	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
-
-	MA = new double[subMatrixElems];
-	MB = new double[subMatrixElems];
-	MC = new double[subMatrixElems];
 }
-void initialReceiveMatrices(double * MA, double * MB, int rows, int cols, int rank, int size)
+void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int rank, int size)
 {
-	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
-
 	MPI_Status status;
 
 	double *buffer = new double[subMatrixElems];
@@ -132,6 +131,32 @@ void initialReceiveMatrices(double * MA, double * MB, int rows, int cols, int ra
 	}
 
 	delete[] buffer;
+}
+
+void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size)
+{
+	int procWidth = sqrt(size);
+
+	int location[2] = {
+		rank / procWidth
+		,rank % procWidth
+	};
+
+	int targetX = location[0];
+	int targetY = location[1];
+
+	if (direction == DIRECTION_LEFT)
+	{
+		targetY = (targetY - 1 + procWidth) % procWidth;
+	}
+	else if (direction == DIRECTION_UP)
+	{
+		targetX = (targetX - 1 + procWidth) % procWidth;
+	}
+
+	int target = targetX * procWidth + targetY;
+
+	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);
 }
 
 void multiplyMatrices(const double *MA, const double *MB, double *MC, int rows, int cols)
