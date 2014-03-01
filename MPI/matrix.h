@@ -20,7 +20,7 @@ void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int
 
 void setMatrices(double *& matrixA, double *& matrixB, double *& matrixC, int rows, int cols);
 
-void shuffleMatrices(double *matrixA, double *matrixB, int rows, int cols, int size);
+void shuffleMatrices(double *matrixA, double *matrixB, int rows, int cols);
 void initialSendMatrices(const double * matrixA, const double * matrixB, int rows, int cols, int size);
 void receiveDimensions(int &rows, int &cols);
 void initialReceiveMatrices(double *matrixA, double *matrixB, int subMatrixElems, int rank, int size);

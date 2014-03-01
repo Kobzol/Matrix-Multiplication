@@ -23,38 +23,54 @@ void setMatrices(double * &MA, double * &MB, double * &MC, int rows, int cols)
 	MA = new double[elems];
 	MB = new double[elems];
 	MC = new double[elems];
+
+	memset(MC, 0, sizeof(*MC) * elems);
 }
-void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
+void shuffleMatrices(double *MA, double *MB, int rows, int cols)
 {
-	int subMatrixElems = (rows * cols) / size;
+	double *rowBuffer = new double[cols * 2];
 
 	// horizontal swap
 	for (int i = 1; i < rows; i++)
 	{
-		int pivot = i * cols;
-
 		for (int j = 0; j < cols; j++)
 		{
 			int targetCol = (j - i + cols) % cols;
 
-			std::swap(MA[pivot], MA[i * cols + targetCol]);
-			std::swap(MB[pivot], MB[i * cols + targetCol]);
+			rowBuffer[targetCol] = MA[i * cols + j];
+			rowBuffer[targetCol + cols] = MB[i * cols + j];
 		}
+
+		memcpy(MA + i * cols, rowBuffer, sizeof(*rowBuffer) * cols);
+		memcpy(MB + i * cols, rowBuffer + cols, sizeof(*rowBuffer) * cols);
 	}
+
+	delete[] rowBuffer;
+
+	double *colBuffer = new double[rows * rows];
 
 	// vertical swap
 	for (int j = 1; j < cols; j++)
 	{
-		int pivot = j;
-
 		for (int i = 0; i < rows; i++)
 		{
 			int targetRow = (i - j + rows) % rows;
 
-			std::swap(MA[pivot], MA[targetRow * cols + j]);
-			std::swap(MB[pivot], MB[targetRow * cols + j]);
+			colBuffer[targetRow] = MA[i * cols + j];
+			colBuffer[targetRow + rows] = MB[i * cols + j];
+		}
+
+		for (int i = 0; i < rows; i++)
+		{
+			MA[i * cols + j] = colBuffer[i];
+			MB[i * cols + j] = colBuffer[i + rows];
 		}
 	}
+
+	printMatrix(MA, rows, cols);
+	printMatrix(MB, rows, cols);
+
+	delete[] colBuffer;
 }
 void initialSendMatrices(const double * MA, const double * MB, int rows, int cols, int size)
 {
@@ -135,7 +151,7 @@ void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int ra
 
 void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size)
 {
-	int procWidth = sqrt(size);
+	/*int procWidth = sqrt(size);
 
 	int location[2] = {
 		rank / procWidth
@@ -156,7 +172,7 @@ void moveMatrix(const double *M, int elems, int direction, int tag, int rank, in
 
 	int target = targetX * procWidth + targetY;
 
-	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);
+	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);*/
 }
 void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 {
@@ -245,7 +261,6 @@ void multiplyMatrices(const double *MA, const double *MB, double *MC, int rows, 
 		for (int j = 0; j < cols; j++)
 		{
 			int position = i * cols + j;
-			MC[position] = 0;
 
 			for (int k = 0; k < cols; k++)
 			{
