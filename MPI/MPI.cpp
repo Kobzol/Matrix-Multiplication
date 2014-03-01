@@ -23,6 +23,9 @@ int main(int argc, char argv[])
 
 	int sub_rows;
 	int sub_cols;
+	int subMatrixElems;
+
+	int procWidth = sqrt(size);
 
 	if (rank == 0)
 	{
@@ -41,10 +44,31 @@ int main(int argc, char argv[])
 
 		// initialize submatrices
 		sub_rows = sub_cols = ((full_rows * full_cols) / size) / 2;
+		subMatrixElems = sub_rows * sub_cols;
 		
 		setMatrices(MA, MB, MC, sub_rows, sub_rows);
 
 		initialSendMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
+
+		int subMatrixIndex = 0;
+		for (int i = 0; i < sub_rows; i++)
+		{
+			for (int j = 0; j < sub_cols; j++)
+			{
+				MA[subMatrixIndex] = FullMatrixA[i * full_cols + j];
+				MB[subMatrixIndex++] = FullMatrixB[i * full_cols + j];
+			}
+		}
+
+		for (int i = 0; i < procWidth; i++)
+		{
+			multiplyMatrices(MA, MB, MC, sub_rows, sub_cols);
+
+			moveMatrix(MA, subMatrixElems, DIRECTION_LEFT, TAG_MATRIX_A, rank, size);
+			moveMatrix(MB, subMatrixElems, DIRECTION_UP, TAG_MATRIX_B, rank, size);
+
+			receiveMatrices(MA, MB, subMatrixElems, rank, size);
+		}
 
 		delete[] FullMatrixA;
 		delete[] FullMatrixB;
@@ -58,16 +82,16 @@ int main(int argc, char argv[])
 
 		initialReceiveMatrices(MA, MB, sub_rows * sub_cols, rank, size);
 
-		int procWidth = sqrt(size);
-
-		if (rank == 1)
-		{
-			printMatrix(MA, sub_rows, sub_cols);
-		}
+		subMatrixElems = sub_rows * sub_cols;
 
 		for (int i = 0; i < procWidth; i++)
 		{
 			multiplyMatrices(MA, MB, MC, sub_rows, sub_cols);
+
+			moveMatrix(MA, subMatrixElems, DIRECTION_LEFT, TAG_MATRIX_A, rank, size);
+			moveMatrix(MB, subMatrixElems, DIRECTION_UP, TAG_MATRIX_B, rank, size);
+
+			receiveMatrices(MA, MB, subMatrixElems, rank, size);
 		}
 	}
 

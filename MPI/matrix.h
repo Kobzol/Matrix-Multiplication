@@ -25,7 +25,9 @@ void receiveDimensions(int &rows, int &cols);
 void initialReceiveMatrices(double *matrixA, double *matrixB, int subMatrixElems, int rank, int size);
 
 void multiplyMatrices(const double *matrixA, const double *matrixB, double *matrixC, int rows, int cols);
+
 void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size);
+void receiveMatrices(double *MA, double *MB, int elems, int rank, int size);
 
 void returnMatrix();
 

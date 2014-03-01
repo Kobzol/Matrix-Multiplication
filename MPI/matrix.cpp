@@ -158,6 +158,44 @@ void moveMatrix(const double *M, int elems, int direction, int tag, int rank, in
 
 	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);
 }
+void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
+{
+	double *buffer = new double[elems];
+
+	MPI_Status status;
+
+	/*for (int i = 0; i < 2; i++)
+	{
+		MPI_Recv(buffer, elems, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+		if (status.MPI_TAG == TAG_MATRIX_A)
+		{
+			memcpy(MA, buffer, sizeof(*buffer) * elems);
+		}
+		else memcpy(MB, buffer, sizeof(*buffer) * elems);
+	}*/
+
+	int procWidth = sqrt(size);
+
+	int location[2] = {
+		rank / procWidth
+		, rank % procWidth
+	};
+
+	int bottomX = (location[0] + 1 + procWidth) % procWidth;
+	int bottomY = location[1];
+
+	int rightX = location[0];
+	int rightY = (location[1] + 1 + procWidth) % procWidth;
+
+	int bottom = (bottomX * (elems / 2)) + bottomY;
+	int right = (rightX * (elems / 2)) + rightY;
+
+	MPI_Recv(MA, elems, MPI_DOUBLE, right, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+	MPI_Recv(MB, elems, MPI_DOUBLE, bottom, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+
+	delete[] buffer;
+}
 
 void multiplyMatrices(const double *MA, const double *MB, double *MC, int rows, int cols)
 {
