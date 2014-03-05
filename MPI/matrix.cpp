@@ -3,8 +3,8 @@
 /* Matrix set-up */
 void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 {
-	rows = 8;
-	cols = 8;
+	rows = 256;
+	cols = 256;
 
 	setMatrices(MA, MB, MC, rows, cols);
 
@@ -30,7 +30,7 @@ void setMatrices(double * &MA, double * &MB, double * &MC, int rows, int cols)
 }
 void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 {
-	int sub_rows = ((rows * cols) / size) / 2;
+	int sub_rows = (int) sqrt((rows * cols) / size);
 	int sub_cols = sub_rows;
 	
 	int subMatrixElems = sub_rows * sub_cols;
@@ -237,10 +237,10 @@ void collectResult(double *M, int rows, int cols, int size)
 {
 	int procWidth = (int) sqrt(size);
 
-	int sub_rows = ((rows * cols) / size) / 2;
+	int sub_rows = (int) sqrt((rows * cols) / size);
 	int sub_cols = sub_rows;
 
-	int elems = sub_rows * 2;
+	int elems = sub_rows * sub_cols;
 
 	double *buffer = new double[elems];
 	int bufferPos = 0;

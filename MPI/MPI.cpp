@@ -50,7 +50,7 @@ int main(int argc, char argv[])
 		shuffleMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
 
 		// initialize submatrices
-		sub_rows = sub_cols = ((full_rows * full_cols) / size) / 2;
+		sub_rows = sub_cols = (int) sqrt((full_rows * full_cols) / size);
 		subMatrixElems = sub_rows * sub_cols;
 		
 		setMatrices(MA, MB, MC, sub_rows, sub_rows);
