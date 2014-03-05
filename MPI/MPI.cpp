@@ -128,9 +128,6 @@ int main(int argc, char argv[])
 	delete[] MA;
 	delete[] MB;
 	delete[] MC;
-
-	int test;
-	scanf("%d", &test);
 	
 	MPI_Finalize();
 
