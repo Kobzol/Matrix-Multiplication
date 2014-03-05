@@ -3,8 +3,8 @@
 /* Matrix set-up */
 void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 {
-	rows = 4;
-	cols = 4;
+	rows = 8;
+	cols = 8;
 
 	setMatrices(MA, MB, MC, rows, cols);
 
@@ -89,7 +89,7 @@ void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 void initialSendMatrices(const double * MA, const double * MB, int rows, int cols, int size)
 {
 	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
-	int subMatrixDim = subMatrixElems / 2;		// dimension of submatrix
+	int subMatrixDim = (int) sqrt(subMatrixElems);		// dimension of submatrix
 	
 	double *bufferMA = new double[subMatrixElems];
 	double *bufferMB = new double[subMatrixElems];
@@ -97,7 +97,7 @@ void initialSendMatrices(const double * MA, const double * MB, int rows, int col
 
 	int dimensions[2] = { subMatrixDim, subMatrixDim };
 
-	int procWidth = sqrt(size);	// dimension of grid
+	int procWidth = (int) sqrt(size);	// dimension of grid
 
 	int i;	// processor x coord in grid
 	int j;	// processor y coord in grid
@@ -136,12 +136,14 @@ void initialSendMatrices(const double * MA, const double * MB, int rows, int col
 
 void receiveDimensions(int &rows, int &cols)
 {
-	int dimensions[2];
+	int * dimensions = new int[2];
 
 	MPI_Recv(dimensions, 2, MPI_INT, 0, TAG_MATRIX_DIMENSIONS, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
 	rows = dimensions[0];
 	cols = dimensions[1];
+
+	delete[] dimensions;
 }
 void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int rank, int size)
 {
@@ -165,7 +167,7 @@ void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int ra
 
 void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size)
 {
-	int procWidth = sqrt(size);
+	int procWidth = (int) sqrt(size);
 
 	int location[2] = {
 		rank / procWidth
@@ -205,7 +207,7 @@ void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 		else memcpy(MB, buffer, sizeof(*buffer) * elems);
 	}*/
 
-	int procWidth = sqrt(size);
+	int procWidth = (int) sqrt(size);
 
 	int location[2] = {
 		rank / procWidth
@@ -233,7 +235,7 @@ void sendResult(const double *M, int elems, int target)
 }
 void collectResult(double *M, int rows, int cols, int size)
 {
-	int procWidth = sqrt(size);
+	int procWidth = (int) sqrt(size);
 
 	int sub_rows = ((rows * cols) / size) / 2;
 	int sub_cols = sub_rows;

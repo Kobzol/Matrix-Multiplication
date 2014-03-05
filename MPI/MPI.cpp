@@ -27,7 +27,7 @@ int main(int argc, char argv[])
 	int sub_cols;
 	int subMatrixElems;
 
-	int procWidth = sqrt(size);
+	int procWidth = (int) sqrt(size);
 
 	if (rank == 0)
 	{
@@ -106,7 +106,7 @@ int main(int argc, char argv[])
 	{
 		receiveDimensions(sub_rows, sub_cols);
 
-		setMatrices(MA, MB, MC, sub_rows, sub_cols);
+		setMatrices(MA, MB, MC, sub_rows, sub_cols);	// bottleneck?
 
 		initialReceiveMatrices(MA, MB, sub_rows * sub_cols, rank, size);
 
