@@ -1,10 +1,9 @@
 #include "matrix.h"
 
-/* Matrix set-up */
 void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 {
-	rows = 256;
-	cols = 256;
+	rows = 4;
+	cols = 4;
 
 	setMatrices(MA, MB, MC, rows, cols);
 
@@ -28,6 +27,7 @@ void setMatrices(double * &MA, double * &MB, double * &MC, int rows, int cols)
 
 	memset(MC, 0, sizeof(*MC) * elems);
 }
+
 void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 {
 	int sub_rows = (int) sqrt((rows * cols) / size);
@@ -86,6 +86,7 @@ void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 
 	delete[] colBuffer;
 }
+
 void initialSendMatrices(const double * MA, const double * MB, int rows, int cols, int size)
 {
 	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
@@ -145,6 +146,7 @@ void receiveDimensions(int &rows, int &cols)
 
 	delete[] dimensions;
 }
+
 void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int rank, int size)
 {
 	MPI_Status status;
@@ -190,6 +192,7 @@ void moveMatrix(const double *M, int elems, int direction, int tag, int rank, in
 
 	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);
 }
+
 void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 {
 	double *buffer = new double[elems];
@@ -233,6 +236,7 @@ void sendResult(const double *M, int elems, int target)
 {
 	MPI_Send(M, elems, MPI_DOUBLE, target, TAG_MATRIX_RESULT, MPI_COMM_WORLD);
 }
+
 void collectResult(double *M, int rows, int cols, int size)
 {
 	int procWidth = (int) sqrt(size);
