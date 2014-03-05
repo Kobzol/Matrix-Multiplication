@@ -1,14 +1,16 @@
 #include "matrix.h"
 
+/* Matrix set-up */
 void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int &cols)
 {
 	rows = 4;
 	cols = 4;
 
-	setMatrices(MA, MB, MC, rows, cols);	// size of 1 creates full matrix
+	setMatrices(MA, MB, MC, rows, cols);
 
 	int count = rows * cols;
 
+	/* Fill matrix with some data */
 	for (int i = 0; i < count; i++)
 	{
 		MA[i] = (i + 1) % 3;
@@ -47,8 +49,7 @@ void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 
 		for (int j = 0; j < cols; j++)
 		{
-			int targetCol = (j - (gap * sub_cols) + cols) % cols;
-
+			int targetCol = (j - (gap * sub_cols) + cols) % cols;	// find target column
 
 			rowBuffer[targetCol] = MA[i * cols + j];
 		}
@@ -72,7 +73,7 @@ void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 
 		for (int i = 0; i < rows; i++)
 		{
-			int targetRow = (i - (gap * sub_rows) + rows) % rows;
+			int targetRow = (i - (gap * sub_rows) + rows) % rows;	// find target row
 
 			colBuffer[targetRow] = MB[i * cols + j];
 		}
@@ -217,8 +218,8 @@ void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 	int rightX = location[0];
 	int rightY = (location[1] + 1 + procWidth) % procWidth;
 
-	int bottom = (bottomX * (elems / 2)) + bottomY;
-	int right = (rightX * (elems / 2)) + rightY;
+	int bottom = (bottomX * procWidth) + bottomY;
+	int right = (rightX * procWidth) + rightY;
 
 	MPI_Recv(MA, elems, MPI_DOUBLE, right, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
 	MPI_Recv(MB, elems, MPI_DOUBLE, bottom, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
