@@ -7,7 +7,7 @@
 using std::cout;
 using std::endl;
 
-const bool PRINT_MATRICES = false;
+const bool PRINT_MATRICES = true;
 
 int main(int argc, char argv[])
 {
@@ -40,17 +40,14 @@ int main(int argc, char argv[])
 		
 		// initialize given and result matrices
 		initializeMatrices(FullMatrixA, FullMatrixB, FullMatrixC, full_rows, full_cols);
-		
-		printMatrix(FullMatrixA, full_rows, full_cols);
-		printMatrix(FullMatrixB, full_rows, full_cols);
-
-		shuffleMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols);
 
 		if (PRINT_MATRICES)
 		{
 			printMatrix(FullMatrixA, full_rows, full_cols);
 			printMatrix(FullMatrixB, full_rows, full_cols);
 		}
+
+		shuffleMatrices(FullMatrixA, FullMatrixB, full_rows, full_cols, size);
 
 		// initialize submatrices
 		sub_rows = sub_cols = ((full_rows * full_cols) / size) / 2;
@@ -93,7 +90,7 @@ int main(int argc, char argv[])
 
 		for (int i = 0; i < size - 1; i++)
 		{
-			collectResult(FullMatrixC, sub_rows, sub_cols, size);
+			collectResult(FullMatrixC, full_rows, full_cols, size);
 		}
 
 		if (PRINT_MATRICES)
@@ -118,13 +115,6 @@ int main(int argc, char argv[])
 		for (int i = 0; i < procWidth; i++)
 		{
 			multiplyMatrices(MA, MB, MC, sub_rows, sub_cols);
-
-			if (rank == 1 && PRINT_MATRICES)
-			{
-				printMatrix(MA, sub_rows, sub_cols);
-				printMatrix(MB, sub_rows, sub_cols);
-				printMatrix(MC, sub_rows, sub_cols);
-			}
 
 			moveMatrix(MA, subMatrixElems, DIRECTION_LEFT, TAG_MATRIX_A, rank, size);
 			moveMatrix(MB, subMatrixElems, DIRECTION_UP, TAG_MATRIX_B, rank, size);

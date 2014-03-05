@@ -11,7 +11,7 @@ void initializeMatrices(double * &MA, double * &MB, double * &MC, int &rows, int
 
 	for (int i = 0; i < count; i++)
 	{
-		MA[i] = i + 1;
+		MA[i] = (i + 1) % 3;
 		MB[i] = i % 3;
 	}
 }
@@ -26,49 +26,62 @@ void setMatrices(double * &MA, double * &MB, double * &MC, int rows, int cols)
 
 	memset(MC, 0, sizeof(*MC) * elems);
 }
-void shuffleMatrices(double *MA, double *MB, int rows, int cols)
+void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 {
-	double *rowBuffer = new double[cols * 2];
+	int sub_rows = ((rows * cols) / size) / 2;
+	int sub_cols = sub_rows;
+	
+	int subMatrixElems = sub_rows * sub_cols;
+
+	double *rowBuffer = new double[cols];
 
 	// horizontal swap
-	for (int i = 1; i < rows; i++)
+	unsigned int gap = 0;
+
+	for (int i = sub_rows; i < rows; i++)
 	{
+		if (i % sub_rows == 0)
+		{
+			gap++;
+		}
+
 		for (int j = 0; j < cols; j++)
 		{
-			int targetCol = (j - i + cols) % cols;
+			int targetCol = (j - (gap * sub_cols) + cols) % cols;
+
 
 			rowBuffer[targetCol] = MA[i * cols + j];
-			rowBuffer[targetCol + cols] = MB[i * cols + j];
 		}
 
 		memcpy(MA + i * cols, rowBuffer, sizeof(*rowBuffer) * cols);
-		memcpy(MB + i * cols, rowBuffer + cols, sizeof(*rowBuffer) * cols);
 	}
 
 	delete[] rowBuffer;
 
-	double *colBuffer = new double[rows * rows];
+	double *colBuffer = new double[rows];
 
 	// vertical swap
-	for (int j = 1; j < cols; j++)
-	{
-		for (int i = 0; i < rows; i++)
-		{
-			int targetRow = (i - j + rows) % rows;
+	gap = 0;
 
-			colBuffer[targetRow] = MA[i * cols + j];
-			colBuffer[targetRow + rows] = MB[i * cols + j];
+	for (int j = sub_cols; j < cols; j++)
+	{
+		if (j % sub_rows == 0)
+		{
+			gap++;
 		}
 
 		for (int i = 0; i < rows; i++)
 		{
-			MA[i * cols + j] = colBuffer[i];
-			MB[i * cols + j] = colBuffer[i + rows];
+			int targetRow = (i - (gap * sub_rows) + rows) % rows;
+
+			colBuffer[targetRow] = MB[i * cols + j];
+		}
+
+		for (int i = 0; i < rows; i++)
+		{
+			MB[i * cols + j] = colBuffer[i];
 		}
 	}
-
-	printMatrix(MA, rows, cols);
-	printMatrix(MB, rows, cols);
 
 	delete[] colBuffer;
 }
@@ -151,7 +164,7 @@ void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int ra
 
 void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size)
 {
-	/*int procWidth = sqrt(size);
+	int procWidth = sqrt(size);
 
 	int location[2] = {
 		rank / procWidth
@@ -172,7 +185,7 @@ void moveMatrix(const double *M, int elems, int direction, int tag, int rank, in
 
 	int target = targetX * procWidth + targetY;
 
-	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);*/
+	MPI_Send(M, elems, MPI_DOUBLE, target, tag, MPI_COMM_WORLD);
 }
 void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 {
@@ -219,14 +232,17 @@ void sendResult(const double *M, int elems, int target)
 }
 void collectResult(double *M, int rows, int cols, int size)
 {
-	MPI_Status status;
-	
 	int procWidth = sqrt(size);
 
-	int elems = rows * cols;
+	int sub_rows = ((rows * cols) / size) / 2;
+	int sub_cols = sub_rows;
+
+	int elems = sub_rows * 2;
 
 	double *buffer = new double[elems];
 	int bufferPos = 0;
+
+	MPI_Status status;
 
 	MPI_Recv(buffer, elems, MPI_DOUBLE, MPI_ANY_SOURCE, TAG_MATRIX_RESULT, MPI_COMM_WORLD, &status);
 
@@ -237,11 +253,11 @@ void collectResult(double *M, int rows, int cols, int size)
 		,rank % procWidth
 	};
 
-	int xStart = location[0] * rows;
-	int xEnd = xStart + rows;
+	int xStart = location[0] * sub_rows;
+	int xEnd = xStart + sub_rows;
 
-	int yStart = location[1] * cols;
-	int yEnd = yStart + cols;
+	int yStart = location[1] * sub_cols;
+	int yEnd = yStart + sub_cols;
 
 	for (int x = xStart; x < xEnd; x++)
 	{
