@@ -68,6 +68,7 @@ int main(int argc, char **argv)
 			}
 		}
 
+		// counting phase
 		for (int i = 0; i < procWidth; i++)
 		{
 			multiplyMatrices(MA, MB, MC, sub_rows, sub_cols);
