@@ -1,4 +1,4 @@
-﻿#include "mpi.h"
+﻿#include <mpi.h>
 #include <cmath>
 #include <iostream>
 
@@ -9,7 +9,7 @@ using std::endl;
 
 const bool PRINT_MATRICES = true;
 
-int main(int argc, char argv[])
+int main(int argc, char **argv)
 {
 	MPI_Init(NULL, NULL);
 	

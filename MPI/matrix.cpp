@@ -167,7 +167,7 @@ void initialReceiveMatrices(double * MA, double * MB, int subMatrixElems, int ra
 	delete[] buffer;
 }
 
-void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size)
+void moveMatrix(double *M, int elems, int direction, int tag, int rank, int size)
 {
 	int procWidth = (int) sqrt(size);
 
@@ -232,7 +232,7 @@ void receiveMatrices(double *MA, double *MB, int elems, int rank, int size)
 	delete[] buffer;
 }
 
-void sendResult(const double *M, int elems, int target)
+void sendResult(double *M, int elems, int target)
 {
 	MPI_Send(M, elems, MPI_DOUBLE, target, TAG_MATRIX_RESULT, MPI_COMM_WORLD);
 }

@@ -38,13 +38,13 @@ void initialReceiveMatrices(double *matrixA, double *matrixB, int subMatrixElems
 void multiplyMatrices(const double *matrixA, const double *matrixB, double *matrixC, int rows, int cols);
 
 /* Send submatrix to a neighbour process, indicated by direction */
-void moveMatrix(const double *M, int elems, int direction, int tag, int rank, int size);
+void moveMatrix(double *M, int elems, int direction, int tag, int rank, int size);
 
 /* Receive submatrices from neighbour processes */
 void receiveMatrices(double *MA, double *MB, int elems, int rank, int size);
 
 /* Send complete submatrix of matrix C to master */
-void sendResult(const double *M, int elems, int target);
+void sendResult(double *M, int elems, int target);
 
 /* Receive complete submatrix of matrix C from slave */
 void collectResult(double *M, int rows, int cols, int size);
