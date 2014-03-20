@@ -89,7 +89,7 @@ void shuffleMatrices(double *MA, double *MB, int rows, int cols, int size)
 
 void initialSendMatrices(const double * MA, const double * MB, int rows, int cols, int size)
 {
-	int subMatrixElems = (rows * cols) / size;	// number of elements in submatrix
+	int subMatrixElems = (rows * cols) / size;			// number of elements in submatrix
 	int subMatrixDim = (int) sqrt(subMatrixElems);		// dimension of submatrix
 	
 	double *bufferMA = new double[subMatrixElems];
